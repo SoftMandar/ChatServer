@@ -188,6 +188,6 @@ class ChatServer(object):
         self.inputs.remove(client_socket)
         if client_socket in self.outputs:
             self.outputs.remove(client_socket)
-        if client_socket in self.message_queue.keys():
+        if client_socket in list(self.message_queue.keys()):
             del self.message_queue[client_socket]
         client_socket.close()
