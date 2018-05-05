@@ -13,7 +13,7 @@ class ProfanityFilter(object):
         self.inside_words = insidewords
         #Get profanity words
 
-        if os.path.exists(Profanity Filter.PROFANITY_FILE_PATH):
+        if os.path.exists(ProfanityFilter.PROFANITY_FILE_PATH):
             with open(ProfanityFilter.PROFANITY_FILE_PATH, "r") as prof:
                 self.profanity_words = [w.strip("\n") for w in prof.readlines()]
         else:

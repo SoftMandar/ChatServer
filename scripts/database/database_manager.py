@@ -4,6 +4,8 @@ import sys
 import mysql.connector as mysql
 from mysql.connector import errorcode
 
+from database_setup import database_entries
+
 class DatabaseManager(object):
 
     def __init__(self, database_config):
@@ -17,10 +19,9 @@ class DatabaseManager(object):
 
             if merr.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 pass
-            elif merr.errno == errorcode.ER_BAD_DB_ERROR:
-                pass
             else:
                 pass
+
         self.cursor = self.db_connection.cursor()
         return self
 
@@ -60,5 +61,12 @@ class DatabaseManager(object):
         except mysql.Error as merr:
             if merr.errno == errorcode.ER_TABLE_EXIST_ERROR:
                 pass
-        else:
+            else:
+                pass
+
+    def get_table_by_cond(self, table, **kwargs):
+
+        query = []
+
+        if kwargs:
             pass

@@ -1,25 +1,23 @@
 import socket
-import argparse
 import select
-import logging.config
-import os
-import json
 import sys
 
 try:
     import queue
 except ImportError:
     import Queue as queue
-from configparser import ConfigParser
+
+from ..config import *
 
 class ChatServer(object):
 
     def __init__(self, server_address=None, reuse_addr=True, back_log=10,
-                    blocking_mode=False, cfg_file="server_cfg.ini"):
+                    blocking_mode=False):
         """
             ChatServer - class
 
             Positional Arguments: None
+
 
             KeyWordArguments:
                 --server_address: Initial set to None ,will be set from the config
@@ -30,7 +28,6 @@ class ChatServer(object):
 
                 --bacl_log: Used parameter for listen , indicates the maximum
                 number of clients in the session queue.
-
                 --blocking_mode: Will set the socket as blocking or nonblocking.
 
                 --cfg_file: Default file for server configuration
@@ -46,33 +43,17 @@ class ChatServer(object):
 
             --cfg_file: file configuration path
         """
-        BASE_PROJECT_FOLDER = os.path.dirname(os.path.abspath(__file__))
-        CONFIG_FILE_FILE    = os.path.join(BASE_PROJECT_FOLDER, cfg_file)
-        LOGGING_CONFIG_FILE = os.path.join(BASE_PROJECT_FOLDER, "logger_config.json")
 
-        self.__server_logger = logging.getLogger(__name__ + "chat_server")
-
-        # Configure logger
-        if os.path.exists(LOGGING_CONFIG_FILE):
-            with open(LOGGING_CONFIG_FILE, "rt") as log_cfile:
-                    logging.config.dictConfig(json.load(log_cfile))
-        else:
-            logging.basicConfig(level=logging.INFO)
-
-        if os.path.exists(CONFIG_FILE_FILE):
-            self.__server_logger.info("Starting server configuration...")
-            self.config_parser = ConfigParser()
-            self.config_parser.read(CONFIG_FILE_FILE)
-
-        self.message_queue= {}
+        self.__server_logger = logging.getLogger(__name__ + ".chat_server")
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.message_queue= {}
 
         if server_address is not None:
             self.server_address = server_address
         else:
-            self.server_address = (str(self.config_parser.get("server_config", "host_address")),
-                int(self.config_parser.get("server_config", "port")))
+            self.server_address = (str(config_parser.get("server_config", "host_address")),
+                int(config_parser.get("server_config", "port")))
         try:
             self.server_socket.bind(self.server_address)
         except socket.error as serr:
@@ -172,7 +153,7 @@ class ChatServer(object):
         try:
             data_buffer = client_socket.recv(MAX_RECV_BYTES)
         except IOError as ierr:
-            self.__server_logger.error("Error on recieving data")
+            self.__server_logger.error(str(ierr))
             sys.exit(1)
 
         else:

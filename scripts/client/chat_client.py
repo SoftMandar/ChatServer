@@ -3,7 +3,8 @@ import sys
 import select
 import datetime
 
-from profanityf.profanity import ProfanityFilter
+from profanity import ProfanityFilter
+
 class ClientChat(object):
 
     MAX_RECV_BYTES = 1024
@@ -27,7 +28,8 @@ class ClientChat(object):
 
     def send_message(self, message):
 
-        clean_message = self.prof_filter.replace_text(message)
+        if self.prof_filter:
+            clean_message = self.prof_filter.replace_text(message)
         try:
             self.client_socket.send(clean_message.encode("utf-8"))
         except IOError as ierr:
