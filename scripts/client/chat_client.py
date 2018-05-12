@@ -63,6 +63,8 @@ class ClientChat(object):
     def send_whisper(self, client, message):
         pass
 
+    def login_client(self, username, password):
+            pass
 clt_obj = ClientChat(("127.0.0.1", 8080))
 
 clt_obj.connect_forever()

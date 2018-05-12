@@ -4,12 +4,13 @@ import sys
 import mysql.connector as mysql
 from mysql.connector import errorcode
 
-from database_setup import database_entries
+from ..exceptions.base_exceptions import *
 
 class DatabaseManager(object):
 
     def __init__(self, database_config):
 
+        self.database_logger = logging.getLogger(__name__ + ".database_log")
         self.database_config = database_config
 
     def __enter__(self):
@@ -18,15 +19,14 @@ class DatabaseManager(object):
         except mysql.Error as merr:
 
             if merr.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                pass
+                self.database_logger.exception("Access denied")
             else:
-                pass
+                self.database_logger.exception(merr)
 
         self.cursor = self.db_connection.cursor()
         return self
 
-    def __exit__(self):
-
+    def __exit__(self, *args, **kwargs):
         self.cursor.close()
         self.db_connection.close()
 
@@ -35,38 +35,51 @@ class DatabaseManager(object):
         return "Class: <{}>".format(self.__name__)
 
     def add_table_entry(self, table, **kwargs):
-
         query = [ "INSERT INTO %s " % table ]
 
         if kwargs:
-            query.append("%s" % ','.join(["%s" % e for e in \
+            query.append("(%s)" % ','.join(["%s" % e for e in \
                                 list(kwargs.keys())]))
-            query.append("VALUES (%s)" % ','.join(["'%s'" % e for e in \
+            query.append(" VALUES (%s);" % ','.join(["'%s'" % e for e in \
                                 list(kwargs.values())]))
         try:
             self.cursor.execute(''.join(query))
+            self.db_connection.commit()
         except mysql.Error as merr:
-            if merr.errno == errorcode.ER_TABLE_EXIST_ERROR:
-                pass
-
+            if merr.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+                self.database_logger.exception("Table dosen't exist")
+            else:
+                self.database_logger.exception(merr)
 
     def get_table_entry(self, table, **kwargs):
-        query = []
+        query = ""
 
         if kwargs:
-            query.append( "SELECT %s FROM" % )
-
+            query % "SELECT %s FROM %s" % (",".join(["%s" % q for q in \
+                                        list(kwargs.keys())]), table)
         try:
-            self.cursor.execute()
+            self.cursor.execute("".join(query))
         except mysql.Error as merr:
             if merr.errno == errorcode.ER_TABLE_EXIST_ERROR:
-                pass
+                self.database_logger.exception("Table dosen't exist")
             else:
-                pass
+                self.database_logger.exception(merr)
 
-    def get_table_by_cond(self, table, **kwargs):
+    def get_table_by_name(self, table, name ,*args):
 
-        query = []
+        query = "SELECT %s FROM %s WHERE %s"
 
-        if kwargs:
-            pass
+        if args:
+            query = query % (",".join([q for q in args]), table, "name='%s'" % name)
+        try:
+            self.cursor.execute(query)
+        except mysql.Error as merr:
+            if merr.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+                self.database_logger.exception("Table dosen't exist")
+            else:
+                self.database_logger.exception(merr)
+        player = self.cursor.fetchone()
+        if player is not None:
+            return player
+        else:
+            raise PlayerNotFoundException("Player dosen't exists in database entry")

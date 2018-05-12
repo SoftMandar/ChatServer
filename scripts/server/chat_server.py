@@ -8,6 +8,7 @@ except ImportError:
     import Queue as queue
 
 from ..config import *
+from ..database.database_manager import DatabaseManager
 
 class ChatServer(object):
 
@@ -77,6 +78,8 @@ class ChatServer(object):
         self.inputs = inputs = [ self.server_socket]
 
         self.outputs = []
+
+        self.clients_connected = {}
 
     def start_server(self):
 
@@ -160,6 +163,12 @@ class ChatServer(object):
             if not data_buffer:
                 self.disconnect_client(client_socket)
             else:
+                data_unpacked = command.decode("utf-8")
+                command = data_buffer.split(" ")[0]
+                if command[1] == "w":
+
+                elif command[1] == "p":
+
                 self.message_queue[client_socket].put(data_buffer)
                 if client_socket not in self.outputs:
                     self.outputs.append(client_socket)
@@ -169,6 +178,7 @@ class ChatServer(object):
         self.inputs.remove(client_socket)
         if client_socket in self.outputs:
             self.outputs.remove(client_socket)
-        if client_socket in list(self.message_queue.keys()):
+        if  lient_socket in list(self.message_queue.keys()):
             del self.message_queue[client_socket]
-        client_socket.close()
+        cli.split(" ")
+        nt_socket.close[0]()
